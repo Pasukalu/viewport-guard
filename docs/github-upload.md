@@ -2,7 +2,7 @@
 
 These steps publish a source repository; they do not publish an npm package. Choose a method below. / 以下步骤发布源码仓库，不发布 npm 包；任选一种方式。
 
-Version 1.0 publication target: **Pasukalu/viewport-guard**. Repository creation and upload are being handled as part of the project work; remote existence and the final URL remain pending verification. These instructions also serve as maintenance notes. / 1.0 目标仓库为 **Pasukalu/viewport-guard**，建仓与上传由本次项目工作执行；远端是否已建立及最终 URL 待实际核验。以下同时作为维护操作说明。
+Version 1.0 is published at [Pasukalu/viewport-guard](https://github.com/Pasukalu/viewport-guard), public, default branch `main`. Tabbit created the repository, then the connected GitHub service uploaded the checked source and artwork. The remote source tree, README and banner were verified. These instructions remain as maintenance notes. / 1.0 已上传公开仓库，默认分支 main；通过 Tabbit 建仓后，由 GitHub 连接上传已核对的源码和图片，已验证远端源码树、README 及横幅。以下保留为维护操作说明。
 
 ## Prepare / 准备
 

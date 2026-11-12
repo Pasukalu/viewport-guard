@@ -1,6 +1,6 @@
 # 1.0 verification / 1.0 验证记录
 
-Recorded on **2026-11-13, Asia/Shanghai**. Local validation is complete; GitHub creation/upload remains pending. / 本地验收已完成，GitHub 建仓与上传仍待完成。
+Recorded on **2026-11-13, Asia/Shanghai**. Local validation and GitHub publication are complete. / 本地验收与 GitHub 上传已完成。
 
 ## Final observed results / 最终实际结果
 
@@ -61,9 +61,9 @@ Dependency folders, `dist/`, browser caches and generated audit reports/screensh
 - [x] Current Node 22/24 checks, including the HTML viewport-limit guard and regression. / 两个运行时通过修正后的最终检查。
 - [x] Offline HTML at 1440×1000 and 390×844, including width tabs and category filters: no layout overflow, external requests or page errors; four screenshots inspected. / 桌面与手机交互、四张实际截图验收通过。
 - [x] Final source manifest and package checks. / 最终源码清单与交付包核对。
-- [ ] Create/upload the intended GitHub repository and verify README, assets and default branch. / 实际建仓上传并验证页面、图片和默认分支。
+- [x] Created/uploaded the GitHub repository and verified README, assets and default branch. / 实际建仓上传并验证页面、图片和默认分支。
 
-The intended target is **Pasukalu/viewport-guard**; this record does not assert that the remote exists or has been uploaded. / 目标仓库尚未在本记录中声明已创建或上传。
+Published repository: [Pasukalu/viewport-guard](https://github.com/Pasukalu/viewport-guard), public, default branch `main`. Release commit `725fe3b620c9ddab3c8d719239e11aabf10291ce` contains the 67-file source tree `40b7bd3bf8c3dea12d10977e519b1b9bf30da448`, exactly matching the checked local release. Both PNG Git blob hashes match. Tabbit confirmed the rendered bilingual README and decoded 1915×821 banner; a public Git fetch independently confirmed the source tree. / 公开仓库的默认分支为 main，发布源码树与已检查的本地版本完全一致，两张 PNG 的 Git blob 哈希一致；Tabbit 已确认双语 README 与横幅正常显示，公开 Git 拉取再次核对了源码树。本提交随后补记这些上传验证结果。
 
 ## Limits and next proposals / 限制与后续建议
 

@@ -4,7 +4,7 @@ Versions below describe local source milestones, not npm publications. / 以下�
 
 ## 1.0.0 — Whale-girl lookout / 鲸鱼娘守护视口 — 2026-11-13
 
-Verified on 2026-11-13 (Asia/Shanghai): clean Windows installs with Node.js 22.23.5 and 24.22.1/npm 10.9.9 each passed typecheck, build, 227/227 tests and 19/19 smoke scenarios. Desktop/mobile offline HTML and interactions passed visual checks. GitHub creation/upload remains pending. / 两个运行时的干净安装、类型检查、构建、227 项测试及 19 个 smoke 场景均通过；离线报告桌面、手机布局与交互已验收。GitHub 建仓上传尚未完成。See [verification / 验证记录](docs/verification.md).
+Verified on 2026-11-13 (Asia/Shanghai): clean Windows installs with Node.js 22.23.5 and 24.22.1/npm 10.9.9 each passed typecheck, build, 227/227 tests and 19/19 smoke scenarios. Desktop/mobile offline HTML and interactions passed visual checks. Published at [Pasukalu/viewport-guard](https://github.com/Pasukalu/viewport-guard); the source tree, README and banner were verified. / 两个运行时的干净安装、类型检查、构建、227 项测试及 19 个 smoke 场景均通过；离线报告桌面、手机布局与交互已验收，GitHub 已上传并核对。See [verification / 验证记录](docs/verification.md).
 
 - Add explicit, strictly validated JSON configuration with defaults → file → explicit CLI precedence and source-relative path resolution. / 增加显式 JSON 配置、优先级及相对路径处理。
 - Add failure policies that preserve raw evidence and statistics while evaluating selected blocking categories; operational errors retain exit code 2. / 失败策略保留原始证据与统计，执行错误始终返回 2。
