@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard — deliberate runtime errors</title>
+  <style>body { margin: 24px; font: 16px/1.6 system-ui, sans-serif; overflow-wrap: anywhere; }</style>
+</head>
+<body>
+  <h1>Deliberate runtime errors</h1>
+  <p>This fixture emits one console error, an uncaught exception, and a failed transport request.</p>
+  <script>
+    console.error('fixture: deliberate console error');
+    fetch('/disconnect').catch(() => {});
+    setTimeout(() => { throw new Error('fixture: deliberate page error'); }, 20);
+  </script>
+</body>
+</html>

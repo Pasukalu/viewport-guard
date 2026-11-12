@@ -1,0 +1,34 @@
+name: Bug report / 问题反馈
+description: Report a reproducible failure / 报告可复现的问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Include a minimal reproduction. Remove credentials and private page content from logs, reports, and screenshots.
+        请提供最小复现步骤，并删除日志、报告及截图中的凭据与私有页面内容。
+  - type: input
+    id: environment
+    attributes:
+      label: Version and environment / 版本与环境
+      description: Viewport Guard version, Node.js version, operating system / 项目版本、Node.js 版本、操作系统
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction / 复现步骤
+      description: Include the exact command and a minimal local HTML example when possible / 尽可能附完整命令和最小本地 HTML 示例
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior / 预期与实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / 相关证据
+      description: Exit code, relevant JSON fields, error output, or screenshot / 退出码、相关 JSON 字段、错误输出或截图

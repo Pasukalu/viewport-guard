@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard — responsive fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #183247; background: #edf4f8; font: 16px/1.6 system-ui, sans-serif; }
+    main { width: min(100% - 32px, 960px); margin: 48px auto; }
+    h1 { font-size: clamp(28px, 5vw, 48px); line-height: 1.15; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+    article { padding: 24px; border: 1px solid #c9dce7; border-radius: 12px; background: white; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>VIEWPORT GUARD / CLEAN FIXTURE</p>
+    <h1>A layout that fits.</h1>
+    <p>This page should pass at 360, 390, 768, and 1440 CSS pixels.</p>
+    <section class="cards" aria-label="Responsive cards">
+      <article><h2>Flexible width</h2><p>Content stays within the viewport.</p></article>
+      <article><h2>Local assets</h2><p>No external services or fonts are required.</p></article>
+      <article><h2>Quiet runtime</h2><p>No deliberate console, script, or network errors.</p></article>
+    </section>
+  </main>
+</body>
+</html>

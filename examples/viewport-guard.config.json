@@ -1,0 +1,8 @@
+{
+  "outputDir": "../viewport-guard-reports",
+  "widths": [360, 390, 768, 1440],
+  "timeoutMs": 15000,
+  "waitMs": 500,
+  "failOn": ["overflow", "console", "pageerror", "request"],
+  "html": true
+}

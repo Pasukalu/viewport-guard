@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard — delayed content fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #183247; background: #edf4f8; font: 16px/1.6 system-ui, sans-serif; }
+    header { padding: 24px; }
+    #ready { width: 1800px; height: 240px; padding: 32px; border: 8px solid #d4432e; background: #ffe1cc; }
+  </style>
+</head>
+<body>
+  <header><p>VIEWPORT GUARD / DELAYED CONTENT FIXTURE</p><h1>Content appears after navigation.</h1><p>Wait for the visible #ready panel before auditing this page.</p></header>
+  <div id="ready" hidden>Delayed 1800px panel — overflows at the default widths once visible.</div>
+  <script>
+    setTimeout(() => {
+      history.replaceState(null, '', '?ready=1');
+      document.querySelector('#ready').hidden = false;
+    }, 120);
+  </script>
+</body>
+</html>

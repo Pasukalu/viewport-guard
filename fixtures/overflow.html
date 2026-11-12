@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard — deliberate overflow fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #542019; background: #fff5ee; font: 16px/1.6 system-ui, sans-serif; }
+    header { padding: 24px; }
+    #wide-panel { width: 1800px; height: 240px; padding: 32px; border: 8px solid #d4432e; background: repeating-linear-gradient(90deg, #ffe1cc 0 99px, #e8ac8e 99px 100px); }
+  </style>
+</head>
+<body>
+  <header><p>VIEWPORT GUARD / OVERFLOW FIXTURE</p><h1>This page intentionally overflows.</h1><p>The panel below is 1800 CSS pixels wide.</p></header>
+  <div id="wide-panel">1800px fixed-width panel — horizontal overflow is expected at the four default widths.</div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard — distinguishable overflow evidence</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #542019; background: #fff5ee; font: 16px/1.6 system-ui, sans-serif; }
+    header { padding: 24px; }
+    .wide-panel { width: 1800px; height: 160px; padding: 24px; border: 8px solid #d4432e; background: #ffe1cc; }
+    .wide-panel + .wide-panel { background: #f3d7be; }
+  </style>
+</head>
+<body>
+  <header><p>VIEWPORT GUARD / UNIQUE EVIDENCE FIXTURE</p><h1>Two panels, one duplicated ID.</h1><p>Each panel is 1800 CSS pixels wide. The report should distinguish the two nodes.</p></header>
+  <div id="duplicate-panel" class="wide-panel repeated" data-evidence="first">First panel: duplicate ID, repeated classes.</div>
+  <div id="duplicate-panel" class="wide-panel repeated" data-evidence="second">Second panel: a different node with the same ID and classes.</div>
+</body>
+</html>

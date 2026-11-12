@@ -1,0 +1,35 @@
+{
+  "name": "viewport-guard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Your whale-girl lookout for responsive layouts: audit, compare, and inspect offline.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": { "vite": "6.4.6" },
+  "bin": {
+    "viewport-guard": "dist/cli.js"
+  },
+  "scripts": {
+    "check": "npm run typecheck && npm run build && npm test && npm run smoke",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs && node scripts/smoke-v1.mjs",
+    "fixtures": "node scripts/fixture-server.mjs",
+    "audit": "node dist/cli.js audit"
+  },
+  "dependencies": {
+    "commander": "14.0.3",
+    "playwright": "1.65.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3",
+    "vite": "6.4.6",
+    "vitest": "3.2.7"
+  }
+}

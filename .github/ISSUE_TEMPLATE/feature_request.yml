@@ -1,0 +1,27 @@
+name: Feature request / 功能建议
+description: Describe a focused improvement / 提出范围明确的改进
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / 要解决的问题
+      description: Describe the concrete audit workflow that needs improvement / 描述需要改进的具体审计场景
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior / 建议行为
+      description: Include an example command or report field if useful / 可附示例命令或报告字段
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and acceptance / 范围与验收标准
+      description: State what is included, what can wait, and how to verify success / 说明本次范围、可延后内容及验证方式
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives / 已考虑的替代方案
