@@ -2,10 +2,33 @@ import { z } from 'zod';
 
 export const VIEWPORT_HEIGHT = 900;
 
-export const VIEWPORTS = [360, 390, 768, 1440].map((width) => ({
+export interface ViewportSize {
+  width: number;
+  height: number;
+}
+
+export const VIEWPORTS: ViewportSize[] = [360, 390, 768, 1440].map((width) => ({
   width,
   height: VIEWPORT_HEIGHT,
 }));
+
+export const SCAN_VIEWPORTS: readonly ViewportSize[] = [
+  { width: 375, height: 812 },
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+];
+
+const SCAN_HEIGHT_BY_WIDTH = new Map<number, number>(
+  SCAN_VIEWPORTS.map((viewport) => [viewport.width, viewport.height]),
+);
+
+export function resolveScanViewports(widths?: number[]): ViewportSize[] {
+  if (!widths) return SCAN_VIEWPORTS.map((viewport) => ({ ...viewport }));
+  return widths.map((width) => ({
+    width,
+    height: SCAN_HEIGHT_BY_WIDTH.get(width) ?? VIEWPORT_HEIGHT,
+  }));
+}
 
 export const urlSchema = z.string().trim().url().superRefine((value, ctx) => {
   let url: URL;
@@ -53,7 +76,16 @@ export const optionsSchema = auditInputSchema.extend({
   waitMs: auditInputSchema.shape.waitMs.default(500),
 });
 
+export const scanOptionsSchema = z.object({
+  outputPath: z.string().trim().min(1, 'Output path must not be empty').default('report.html'),
+  timeoutMs: z.number().int().min(1).max(120_000).default(15_000),
+  waitMs: z.number().int().min(0).max(30_000).default(250),
+  waitForSelector: selectorSchema.optional(),
+  widths: widthsSchema.optional(),
+}).strict();
+
 export type AuditOptions = z.infer<typeof optionsSchema>;
+export type ScanOptions = z.infer<typeof scanOptionsSchema>;
 
 export function parseMilliseconds(value: string): number {
   // Reject partial numbers, scientific notation, and empty strings from CLI input.

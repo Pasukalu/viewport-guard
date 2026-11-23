@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard Demo — Fixed Responsive Layout</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #081827;
+      color: #eef6ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    .page-band {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #75e3e8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 5vw, 34px);
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0;
+      color: #a9c1d6;
+      font-size: 15px;
+    }
+    .offer-stage {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0;
+    }
+    /* Minimal responsive fix: width 100% + max-width 560px and adaptive inner grid */
+    .offer-row {
+      width: 100%;
+      max-width: 560px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, #10323a, #16444b);
+      border-top: 2px solid #8ae2b4;
+      border-bottom: 2px solid #8ae2b4;
+    }
+    .offer-card {
+      min-width: 0;
+      padding: 14px;
+      border-radius: 10px;
+      background: #0b1f33;
+      border: 1px solid #2a535d;
+    }
+    .offer-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: #173a2d;
+      color: #a8e8c0;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .offer-card h2 {
+      margin: 10px 0 4px;
+      font-size: 16px;
+    }
+    .offer-price {
+      margin: 0 0 6px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #75e3e8;
+    }
+    .offer-desc {
+      margin: 0;
+      color: #9cb6cb;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    .note {
+      margin: 0;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #10253b;
+      border: 1px solid #243b53;
+      color: #b8cde0;
+      font-size: 13px;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      color: #75e3e8;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-band">
+    <p class="eyebrow">Viewport Guard · Demo (Fixed)</p>
+    <h1>响应式优惠栏示例（修复版）</h1>
+    <p class="lead">本页将 <code>.offer-row</code> 改为 <code>width: 100%; max-width: 560px</code>，并让卡片网格随容器宽度自适应换行，在 375 / 390 / 768 px 视口均为 0px 横向溢出。</p>
+  </header>
+
+  <main class="offer-stage">
+    <section class="offer-row" aria-label="Promotional offers">
+      <article class="offer-card">
+        <span class="offer-tag">Starter</span>
+        <h2>基础版</h2>
+        <p class="offer-price">$19/mo</p>
+        <p class="offer-desc">单页视口扫描与离线 HTML 截图报告。</p>
+      </article>
+      <article class="offer-card">
+        <span class="offer-tag">Popular</span>
+        <h2>团队版</h2>
+        <p class="offer-price">$49/mo</p>
+        <p class="offer-desc">多断点回归对比与可复制修复提示词。</p>
+      </article>
+      <article class="offer-card">
+        <span class="offer-tag">Studio</span>
+        <h2>工作室版</h2>
+        <p class="offer-price">$99/mo</p>
+        <p class="offer-desc">自定义视口矩阵与本地桌面端批处理。</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="page-band">
+    <p class="note">修复方式：<code>.offer-row</code> 使用 <code>width: 100%; max-width: 560px</code> 与自适应网格。故障版请查看 <a href="/broken.html" style="color:#75e3e8">/broken.html</a>。</p>
+  </footer>
+</body>
+</html>

@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "description": "Your whale-girl lookout for responsive layouts: audit, compare, and inspect offline.",
+  "author": "Pasukalu",
   "license": "MIT",
   "type": "module",
+  "main": "desktop/main.mjs",
   "engines": {
     "node": ">=22"
   },
-  "overrides": { "vite": "6.4.6" },
+  "overrides": {
+    "vite": "6.4.6"
+  },
   "bin": {
     "viewport-guard": "dist/cli.js"
   },
@@ -19,7 +23,15 @@
     "test": "vitest run",
     "smoke": "node scripts/smoke.mjs && node scripts/smoke-v1.mjs",
     "fixtures": "node scripts/fixture-server.mjs",
-    "audit": "node dist/cli.js audit"
+    "demo": "node scripts/demo-server.mjs",
+    "scan": "node dist/cli.js scan",
+    "audit": "node dist/cli.js audit",
+    "desktop:icon": "node scripts/build-desktop-icon.mjs",
+    "desktop:prepare-browser": "node scripts/prepare-desktop-browser.mjs",
+    "desktop:dev": "npm run build && electron .",
+    "desktop:pack": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir",
+    "desktop:portable": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win portable",
+    "desktop:dist": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir portable"
   },
   "dependencies": {
     "commander": "14.0.3",
@@ -28,6 +40,8 @@
   },
   "devDependencies": {
     "@types/node": "22.20.5",
+    "electron": "45.4.1",
+    "electron-builder": "26.18.0",
     "typescript": "5.9.3",
     "vite": "6.4.6",
     "vitest": "3.2.7"

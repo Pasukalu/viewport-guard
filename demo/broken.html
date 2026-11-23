@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Viewport Guard Demo — Broken Layout (560px .offer-row)</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #081827;
+      color: #eef6ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    .page-band {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #75e3e8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 5vw, 34px);
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0;
+      color: #a9c1d6;
+      font-size: 15px;
+    }
+    .offer-stage {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0;
+    }
+    /* Intentional horizontal overflow defect: fixed 560px width */
+    .offer-row {
+      width: 560px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, #132c44, #1b3b57);
+      border-top: 2px solid #f4b77d;
+      border-bottom: 2px solid #f4b77d;
+    }
+    .offer-card {
+      min-width: 0;
+      padding: 14px;
+      border-radius: 10px;
+      background: #0b1f33;
+      border: 1px solid #2c4a66;
+    }
+    .offer-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: #3a2d1c;
+      color: #f6d194;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .offer-card h2 {
+      margin: 10px 0 4px;
+      font-size: 16px;
+    }
+    .offer-price {
+      margin: 0 0 6px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #75e3e8;
+    }
+    .offer-desc {
+      margin: 0;
+      color: #9cb6cb;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    .note {
+      margin: 0;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: #10253b;
+      border: 1px solid #243b53;
+      color: #b8cde0;
+      font-size: 13px;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      color: #75e3e8;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-band">
+    <p class="eyebrow">Viewport Guard · Demo (Broken)</p>
+    <h1>固定宽度优惠栏示例（故障版）</h1>
+    <p class="lead">本页故意将 <code>.offer-row</code> 设为固定 <code>width: 560px</code>，用于在 375px（溢出 185px）和 390px（溢出 170px）视口复现横向溢出，而在 768px 视口保持 0px。</p>
+  </header>
+
+  <main class="offer-stage">
+    <section class="offer-row" aria-label="Promotional offers">
+      <article class="offer-card">
+        <span class="offer-tag">Starter</span>
+        <h2>基础版</h2>
+        <p class="offer-price">$19/mo</p>
+        <p class="offer-desc">单页视口扫描与离线 HTML 截图报告。</p>
+      </article>
+      <article class="offer-card">
+        <span class="offer-tag">Popular</span>
+        <h2>团队版</h2>
+        <p class="offer-price">$49/mo</p>
+        <p class="offer-desc">多断点回归对比与可复制修复提示词。</p>
+      </article>
+      <article class="offer-card">
+        <span class="offer-tag">Studio</span>
+        <h2>工作室版</h2>
+        <p class="offer-price">$99/mo</p>
+        <p class="offer-desc">自定义视口矩阵与本地桌面端批处理。</p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="page-band">
+    <p class="note">故障原因：<code>body</code> 边距为 0，<code>.offer-row</code> 写死了 <code>width: 560px</code>。修复版请查看 <a href="/fixed.html" style="color:#75e3e8">/fixed.html</a>。</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "io.github.pasukalu.viewportguard",
+  "productName": "Viewport Guard",
+  "asar": false,
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "package.json",
+    "dist/**/*",
+    "desktop/**/*",
+    "demo/**/*",
+    "scripts/demo-server.mjs",
+    "assets/brand/mascot.png",
+    "assets/brand/NOTICE.md"
+  ],
+  "extraResources": [
+    {
+      "from": ".artifacts/desktop-browsers",
+      "to": "browsers",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "icon": "desktop/assets/icon.ico",
+    "target": [
+      {
+        "target": "dir",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "portable": {
+    "artifactName": "Viewport-Guard-${version}-win-x64-portable.exe"
+  }
+}

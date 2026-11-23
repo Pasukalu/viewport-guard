@@ -2,6 +2,14 @@
 
 Versions below describe local source milestones, not npm publications. / 以下版本为本地源码里程碑，并非 npm 发布。
 
+## 1.1.0-dev (Unreleased) — Standalone Desktop App & Overflow Scan Workflow / 独立桌面版与一键溢出扫描 — 2026-11-23
+
+- Add `scan` CLI command (`npm run scan -- <url> --out <report.html>`) defaulting to `375×812`, `390×844`, and `768×1024` CSS px with isolated contexts, bounded font readiness waiting (`document.fonts.ready`), clear pre-flight URL/path validation, and guaranteed browser cleanup. / 新增 `scan` 命令与 `npm run scan` 脚本，默认检查 `375×812`、`390×844`、`768×1024`，增加有界字体等待、路径与 URL 预检及浏览器可靠关闭。
+- Upgrade overflow detection: treat `<= 1` CSS px root difference as `0`, skip zero-size/hidden nodes and elements clipped by ancestor overflow containers, sort candidates by protrusion descending, cap `scan` at 5 candidates, and prefer readable verified class selectors (e.g. `.offer-row`). / 升级溢出检测：≤1 CSS px 记为 0，跳过无尺寸及被溢出容器裁剪的元素，按越界量降序排列，`scan` 最多 5 项，并优先生成可读且唯一验证通过的类选择器（如 `.offer-row`）。
+- Upgrade standalone offline `report.html`: embed escaped page title, viewport overview cards, candidate screenshot cross-check notice, and a copyable AI fix prompt with automatic fallback to manual text selection (`Ctrl+C`). / 升级独立离线 `report.html`：展示安全转义后的页面标题、视口总览、截图核对提示及可复制 AI 修复提示词（复制失败自动全选支持手动复制）。
+- Add two demo pages (`demo/broken.html` with fixed 560px `.offer-row` producing 185/170/0 px overflow, and `demo/fixed.html` with `width: 100%; max-width: 560px` producing 0/0/0 px) plus `npm run demo` server (`scripts/demo-server.mjs`). / 新增故障版与修复版两个演示页及 `npm run demo` 本地服务。
+- Add Electron standalone Windows desktop application (`desktop/`, `electron-builder.json`, bundled Chromium staging via `scripts/prepare-desktop-browser.mjs`, and mascot-derived Windows `.ico` icon) supporting `npm run desktop:dev`, `npm run desktop:pack`, `npm run desktop:portable`, and `npm run desktop:dist`. / 新增 Electron Windows 独立桌面端及打包配置，支持内嵌无头 Chromium 打包生成免安装目录版与单文件便携版 `.exe`。
+
 ## 1.0.0 — Whale-girl lookout / 鲸鱼娘守护视口 — 2026-11-13
 
 Verified on 2026-11-13 (Asia/Shanghai): clean Windows installs with Node.js 22.23.5 and 24.22.1/npm 10.9.9 each passed typecheck, build, 227/227 tests and 19/19 smoke scenarios. Desktop/mobile offline HTML and interactions passed visual checks. Published at [Pasukalu/viewport-guard](https://github.com/Pasukalu/viewport-guard); the source tree, README and banner were verified. / 两个运行时的干净安装、类型检查、构建、227 项测试及 19 个 smoke 场景均通过；离线报告桌面、手机布局与交互已验收，GitHub 已上传并核对。See [verification / 验证记录](docs/verification.md).

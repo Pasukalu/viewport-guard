@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none';">
+  <title>Viewport Guard — Desktop</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img id="mascot-img" class="brand-avatar" alt="Viewport Guard mascot">
+        <div>
+          <h1>VIEWPORT <span>GUARD</span></h1>
+          <p class="brand-sub" id="app-version">Desktop · Standalone</p>
+        </div>
+      </div>
+
+      <div class="engine-chip" id="engine-chip">Checking browser engine…</div>
+
+      <section class="control-card">
+        <h2>Scan Target / 检查目标</h2>
+        <div class="field">
+          <label for="url-input">HTTP / HTTPS URL（支持本地开发地址）</label>
+          <input id="url-input" type="url" placeholder="http://127.0.0.1:4174/broken.html" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="widths-input">视口宽度（留空默认 375×812, 390×844, 768×1024）</label>
+          <input id="widths-input" type="text" placeholder="375,390,768">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="timeout-input">超时 (ms)</label>
+            <input id="timeout-input" type="number" min="1000" max="120000" value="15000">
+          </div>
+          <div class="field">
+            <label for="wait-input">稳定等待 (ms)</label>
+            <input id="wait-input" type="number" min="0" max="30000" value="250">
+          </div>
+        </div>
+        <div class="field">
+          <label for="waitfor-input">可选等待 CSS 选择器 (--wait-for)</label>
+          <input id="waitfor-input" type="text" placeholder="例如 #app-ready（可留空）">
+        </div>
+        <div class="field">
+          <label for="output-input">独立报告输出路径 (.html)</label>
+          <div class="path-row">
+            <input id="output-input" type="text">
+            <button id="browse-btn" class="btn" type="button">选择…</button>
+          </div>
+        </div>
+        <button id="scan-btn" class="btn btn-primary" type="button">开始扫描并生成 report.html</button>
+      </section>
+
+      <section class="control-card">
+        <h2>Built-in Demo / 内置演示页</h2>
+        <div class="btn-row">
+          <button id="demo-broken-btn" class="btn" type="button">故障版 (.offer-row)</button>
+          <button id="demo-fixed-btn" class="btn" type="button">修复版 (0px)</button>
+        </div>
+        <button id="demo-toggle-btn" class="btn" type="button">启动本地演示服务</button>
+        <p id="demo-status" class="demo-status">内置演示服务未启动。点击上方按钮可直接启动并一键填充地址。</p>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <section id="progress-card" class="progress-card" hidden>
+        <div class="progress-top">
+          <strong id="progress-label">正在准备扫描…</strong>
+          <span id="progress-step">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <progress id="progress-bar" class="progress-native" max="100" value="0"></progress>
+        </div>
+      </section>
+
+      <section id="error-card" class="error-card" hidden>
+        <h2>扫描失败 / Scan Error</h2>
+        <p id="error-text"></p>
+      </section>
+
+      <section id="welcome-card" class="welcome-card">
+        <h2>鲸鱼娘帮你守住每一寸视口。</h2>
+        <p>输入任意 HTTP/HTTPS 网页或本地开发地址，一键在 <strong>375×812</strong>、<strong>390×844</strong>、<strong>768×1024</strong> 三个视口检测横向溢出，生成可单独复制发送的离线 <code>report.html</code> 与可复制 AI 修复提示词。</p>
+        <div class="welcome-grid">
+          <div class="welcome-item">
+            <strong>1. 三视口精准检测</strong>
+            <span>每个视口独立加载、有界等待字体与截图，≤1 CSS px 误差记为 0。</span>
+          </div>
+          <div class="welcome-item">
+            <strong>2. 跳过裁剪与无尺寸节点</strong>
+            <span>仅在文档溢出时输出最多 5 个可见候选元素，按越界量降序排列。</span>
+          </div>
+          <div class="welcome-item">
+            <strong>3. 离线独立报告 + 修复提示词</strong>
+            <span>PNG 全部内嵌，脱离原目录仍可显示截图，并附可直接复制的修复提示词。</span>
+          </div>
+        </div>
+      </section>
+
+      <div id="results-root" hidden>
+        <section class="result-header">
+          <div>
+            <h2 class="result-title" id="result-title">扫描结果</h2>
+            <p class="result-meta" id="result-url"></p>
+            <p class="result-meta" id="result-path"></p>
+          </div>
+          <div class="btn-row header-actions">
+            <span id="outcome-badge" class="outcome-badge clean">0px Overflow</span>
+            <button id="open-report-btn" class="btn" type="button">浏览器打开报告</button>
+            <button id="reveal-report-btn" class="btn" type="button">打开所在文件夹</button>
+            <button id="save-copy-btn" class="btn" type="button">另存独立副本</button>
+          </div>
+        </section>
+
+        <section id="overview-grid" class="overview-grid" aria-label="Viewport results"></section>
+
+        <section class="evidence-grid">
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 id="shot-title">视口截图</h3>
+              <span class="result-meta" id="shot-meta"></span>
+            </div>
+            <div class="screenshot-stage" id="shot-stage"></div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3>疑似出界元素（最多 5 项）</h3>
+              <span class="result-meta" id="candidate-count">0</span>
+            </div>
+            <div class="panel-card-body">
+              <p class="disclaimer">候选元素基于几何边界推断，请结合左侧截图核对后再修改 CSS。</p>
+              <div id="candidate-body"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-card-header">
+            <h3>AI 修复提示词 / Fix Prompt</h3>
+            <div class="btn-row prompt-btn-row">
+              <button id="copy-prompt-btn" class="btn" type="button">复制提示词</button>
+              <button id="select-prompt-btn" class="btn" type="button">全选文本</button>
+            </div>
+          </div>
+          <div class="panel-card-body">
+            <textarea id="prompt-textarea" class="prompt-textarea" readonly aria-label="AI fix prompt"></textarea>
+            <p id="copy-status" class="status-msg"></p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

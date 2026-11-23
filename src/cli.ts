@@ -9,11 +9,42 @@ import { assertOutputIsNotInput, readReportFile, writeJsonOutput } from './files
 import { writeHtmlReport } from './html.js';
 import { getExitCode } from './report.js';
 import { resolveRuntimeConfig } from './runtime-config.js';
+import { scan } from './scan.js';
 
 const program = new Command();
 program.name('viewport-guard')
   .description('Your whale-girl lookout for every viewport. Audit, compare, and inspect offline.')
   .version('1.0.0').showHelpAfterError().exitOverride();
+
+program.command('scan')
+  .description('Scan one HTTP/HTTPS page across 375x812, 390x844, 768x1024 and write a standalone HTML report.')
+  .argument('<url>', 'Page to scan')
+  .option('--out, -o <file>', 'Standalone HTML report path (default: report.html)', 'report.html')
+  .option('--widths <list>', '1–8 unique widths, 240–3840 (default: 375,390,768)', parseWidths)
+  .option('--timeout <ms>', 'Per-operation timeout, 1–120000 (default: 15000)', parseMilliseconds)
+  .option('--wait <ms>', 'Delay after load and fonts, 0–30000 (default: 250)', parseMilliseconds)
+  .option('--wait-for <selector>', 'Wait for the first CSS match to be visible')
+  .action(async (url: string, flags: Record<string, unknown>, command: Command) => {
+    const input: Record<string, unknown> = { outputPath: flags.out };
+    if (command.getOptionValueSource('widths') === 'cli') input.widths = flags.widths;
+    if (command.getOptionValueSource('timeout') === 'cli') input.timeoutMs = flags.timeout;
+    if (command.getOptionValueSource('wait') === 'cli') input.waitMs = flags.wait;
+    if (command.getOptionValueSource('waitFor') === 'cli') input.waitForSelector = flags.waitFor;
+
+    const run = await scan(url, input);
+    for (const result of run.report.results) {
+      const overflowPx = result.overflow ? `${result.overflow.overflowPx}px` : 'unknown';
+      const docPx = result.overflow ? `${result.overflow.documentWidth}px` : 'unknown';
+      const vpPx = result.overflow ? `${result.overflow.viewportWidth}px` : `${result.viewport.width}px`;
+      const candidates = result.overflow?.elements.map((element) => element.selector).join(', ') || 'none';
+      console.log(`${result.viewport.width}x${result.viewport.height}: overflow=${overflowPx} (document=${docPx}, viewport=${vpPx}) | candidates=${candidates}`);
+      for (const error of result.errors) console.error(`  ${error}`);
+    }
+    for (const error of run.report.errors ?? []) console.error(error);
+    console.log(`HTML report: ${run.htmlPath}`);
+    if (run.operationalErrors.length > 0) process.exitCode = 2;
+    else process.exitCode = run.hasOverflow ? 1 : 0;
+  });
 
 program.command('audit')
   .description('Save viewport screenshots and a JSON report (HTTP/HTTPS only).')

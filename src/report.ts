@@ -17,6 +17,7 @@ export const overflowSchema = z.object({
     left: z.number().finite(),
     right: z.number().finite(),
     width: nonnegative,
+    overflowPx: nonnegative.optional(),
   })),
 });
 
@@ -24,6 +25,7 @@ export const viewportResultSchema = z.object({
   viewport: viewportSchema,
   status: z.enum(['passed', 'failed', 'error']),
   finalUrl: z.string(),
+  pageTitle: z.string().optional(),
   screenshot: z.string().nullable(),
   overflow: overflowSchema.nullable(),
   consoleErrors: z.array(z.object({

@@ -1,14 +1,17 @@
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
-import { optionsSchema, urlSchema, VIEWPORTS, VIEWPORT_HEIGHT, type AuditOptions } from './config.js';
+import { type Browser, type BrowserContext, type Page } from 'playwright';
+import { launchChromium } from './browser.js';
+import { optionsSchema, urlSchema, VIEWPORTS, VIEWPORT_HEIGHT, type AuditOptions, type ViewportSize } from './config.js';
 import { reportSchema, type AuditReport, type ViewportResult } from './report.js';
 import { measureOverflow } from './overflow.js';
 import { withTimeout } from './deadline.js';
 import { evaluateReport } from './policy.js';
 
-const CLEANUP_TIMEOUT_MS = 5_000;
+export const CLEANUP_TIMEOUT_MS = 5_000;
+const FONT_WAIT_CAP_MS = 5_000;
+const TITLE_TIMEOUT_CAP_MS = 3_000;
 
 export interface AuditResult {
   report: AuditReport;
@@ -16,23 +19,56 @@ export interface AuditResult {
   outputDir: string;
 }
 
-function errorMessage(error: unknown): string {
+export interface InspectViewportOptions {
+  timeoutMs: number;
+  waitMs: number;
+  waitForSelector?: string;
+  maxOverflowElements?: number;
+  screenshotOutputDir?: string;
+}
+
+export interface InspectViewportResult {
+  result: ViewportResult;
+  screenshotBuffer: Buffer | null;
+  navigated: boolean;
+}
+
+export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-async function auditViewport(
+async function waitForFontsBounded(page: Page, timeoutMs: number): Promise<void> {
+  const budgetMs = Math.max(1, Math.min(timeoutMs, FONT_WAIT_CAP_MS));
+  await withTimeout(
+    () => page.evaluate((limitMs) => {
+      const fonts = document.fonts;
+      if (!fonts || !fonts.ready) return;
+      return Promise.race([
+        fonts.ready.then(() => undefined, () => undefined),
+        new Promise<void>((resolveWait) => { setTimeout(resolveWait, limitMs); }),
+      ]);
+    }, budgetMs),
+    budgetMs + 250,
+    'Font readiness wait',
+  );
+}
+
+export async function inspectViewport(
   browser: Browser,
   url: string,
-  viewport: { width: number; height: number },
-  options: AuditOptions,
-  outputDir: string,
-): Promise<ViewportResult> {
+  viewport: ViewportSize,
+  options: InspectViewportOptions,
+): Promise<InspectViewportResult> {
   const result: ViewportResult = {
     viewport, status: 'error', finalUrl: url, screenshot: null, overflow: null,
     consoleErrors: [], pageErrors: [], failedRequests: [], errors: [],
   };
   let context: BrowserContext | undefined;
   let page: Page | undefined;
+  let screenshotBuffer: Buffer | null = null;
+  let navigated = false;
+  const maxOverflowElements = options.maxOverflowElements ?? 20;
+
   try {
     context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
     page = await context.newPage();
@@ -53,7 +89,6 @@ async function auditViewport(
       });
     });
 
-    let navigated = false;
     try {
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: options.timeoutMs });
       if (response && response.status() >= 400) {
@@ -83,20 +118,52 @@ async function auditViewport(
           result.errors.push(`Readiness wait failed for ${JSON.stringify(options.waitForSelector)}: ${errorMessage(error)}`);
         }
       }
+      if (result.errors.length === 0) {
+        try {
+          await waitForFontsBounded(page, options.timeoutMs);
+        } catch {
+          // Font readiness is best-effort and strictly time-bounded; continue with measurement.
+        }
+      }
       // Do not use networkidle: polling and analytics can keep a page busy forever.
-      await page.waitForTimeout(options.waitMs);
+      if (options.waitMs > 0) await page.waitForTimeout(options.waitMs);
+      if (result.errors.length === 0) {
+        try {
+          const title = await withTimeout(
+            () => page!.title(),
+            Math.max(1, Math.min(options.timeoutMs, TITLE_TIMEOUT_CAP_MS)),
+            'Page title capture',
+          );
+          if (title.trim().length > 0) result.pageTitle = title;
+        } catch {
+          // Missing title must not block overflow measurement or screenshot capture.
+        }
+      }
       try {
-        result.overflow = await withTimeout(() => measureOverflow(page!), options.timeoutMs, 'Overflow measurement');
+        result.overflow = await withTimeout(
+          () => measureOverflow(page!, maxOverflowElements),
+          options.timeoutMs,
+          'Overflow measurement',
+        );
       } catch (error) {
         result.errors.push(`Overflow measurement failed: ${errorMessage(error)}`);
       }
     }
-    try {
-      const relativePath = `screenshots/${viewport.width}.png`;
-      await page.screenshot({ path: join(outputDir, relativePath), fullPage: false, timeout: options.timeoutMs });
-      result.screenshot = relativePath;
-    } catch (error) {
-      result.errors.push(`Screenshot failed: ${errorMessage(error)}`);
+
+    if (options.screenshotOutputDir !== undefined) {
+      try {
+        const relativePath = `screenshots/${viewport.width}.png`;
+        await page.screenshot({ path: join(options.screenshotOutputDir, relativePath), fullPage: false, timeout: options.timeoutMs });
+        result.screenshot = relativePath;
+      } catch (error) {
+        result.errors.push(`Screenshot failed: ${errorMessage(error)}`);
+      }
+    } else if (navigated) {
+      try {
+        screenshotBuffer = await page.screenshot({ type: 'png', fullPage: false, timeout: options.timeoutMs });
+      } catch (error) {
+        result.errors.push(`Screenshot failed: ${errorMessage(error)}`);
+      }
     }
   } catch (error) {
     result.errors.push(`Viewport audit failed: ${errorMessage(error)}`);
@@ -122,7 +189,7 @@ async function auditViewport(
   else if (result.overflow?.hasOverflow || result.consoleErrors.length || result.pageErrors.length || result.failedRequests.length) {
     result.status = 'failed';
   } else result.status = 'passed';
-  return result;
+  return { result, screenshotBuffer, navigated };
 }
 
 export async function audit(url: string, input: Partial<AuditOptions> = {}): Promise<AuditResult> {
@@ -132,7 +199,7 @@ export async function audit(url: string, input: Partial<AuditOptions> = {}): Pro
   const startedAt = new Date().toISOString();
   const started = performance.now();
   // Launch before creating output so missing browsers cannot leave a fake report.
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchChromium();
   let outputDir: string;
   const results: ViewportResult[] = [];
   const runErrors: string[] = [];
@@ -142,7 +209,14 @@ export async function audit(url: string, input: Partial<AuditOptions> = {}): Pro
     outputDir = await mkdtemp(join(parentDir, `audit-${startedAt.replace(/[:.]/g, '-')}-`));
     await mkdir(join(outputDir, 'screenshots'));
     for (const viewport of viewports) {
-      results.push(await auditViewport(browser, targetUrl, viewport, options, outputDir));
+      const inspected = await inspectViewport(browser, targetUrl, viewport, {
+        timeoutMs: options.timeoutMs,
+        waitMs: options.waitMs,
+        ...(options.waitForSelector !== undefined ? { waitForSelector: options.waitForSelector } : {}),
+        maxOverflowElements: 20,
+        screenshotOutputDir: outputDir,
+      });
+      results.push(inspected.result);
     }
   } finally {
     try {

@@ -23,6 +23,7 @@ These sources were inspected as references. No third-party gallery image file wa
 | --- | --- | --- |
 | `mascot.png` | New text-generated project pose; generated 2026-11-12 | 1254×1254, RGBA; sampled alpha 0–255 |
 | `banner.png` | Generated 2026-11-13 using the project's mascot as the identity reference | 1915×821, opaque RGB |
+| `../../desktop/assets/icon.png`, `icon.ico` | Resized desktop app icon rendered locally from `mascot.png` via `scripts/build-desktop-icon.mjs` | 256×256 PNG and multi-size ICO (16–256px) |
 
 Both were generated with the built-in image generation tool and saved into this project. The mascot protects a generic viewport frame; neither image includes a DeepSeek wordmark or claims official status. Prompts, palette and usage rules are recorded in [branding documentation](../../docs/branding.md).
 
