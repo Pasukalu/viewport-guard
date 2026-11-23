@@ -1,0 +1,159 @@
+name: Build & Release Multi-Platform Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional existing or new tag to publish release assets to (e.g. v1.0.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: windows-x64
+            os: windows-latest
+            build_cmd: npm run desktop:dist:win
+            artifact_name: desktop-windows-x64
+            artifact_paths: |
+              release/Viewport-Guard-*-win-x64-portable.exe
+              release/Viewport-Guard-*-win-x64-setup.exe
+          - label: macos-arm64
+            os: macos-15
+            build_cmd: npm run desktop:dist:mac:arm64
+            artifact_name: desktop-macos-arm64
+            artifact_paths: |
+              release/Viewport-Guard-*-mac-arm64.dmg
+              release/Viewport-Guard-*-mac-arm64.zip
+          - label: macos-x64
+            os: macos-15-intel
+            build_cmd: npm run desktop:dist:mac:x64
+            artifact_name: desktop-macos-x64
+            artifact_paths: |
+              release/Viewport-Guard-*-mac-x64.dmg
+              release/Viewport-Guard-*-mac-x64.zip
+          - label: linux-x64
+            os: ubuntu-24.04
+            build_cmd: npm run desktop:dist:linux:x64
+            artifact_name: desktop-linux-x64
+            artifact_paths: |
+              release/Viewport-Guard-*-linux-x64.AppImage
+              release/Viewport-Guard-*-linux-x64.deb
+              release/Viewport-Guard-*-linux-x64.tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium (Windows & macOS)
+        if: runner.os != 'Linux'
+        run: npx playwright install chromium
+
+      - name: Install Playwright Chromium & system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libfuse2
+          npx playwright install --with-deps chromium
+
+      - name: Run typecheck, unit tests, and CLI smoke tests
+        run: npm run check
+
+      - name: Build standalone desktop packages
+        run: ${{ matrix.build_cmd }}
+
+      - name: Verify packaged desktop app offline (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:PLAYWRIGHT_BROWSERS_PATH = 'C:\nonexistent-playwright-cache-ci'
+          $out = Join-Path $PWD '.artifacts\ci-selftest-win.json'
+          $proc = Start-Process -FilePath "$PWD\release\win-unpacked\Viewport Guard.exe" -ArgumentList "--self-test=$out" -Wait -PassThru
+          if (Test-Path $out) { Get-Content $out }
+          if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
+
+      - name: Verify packaged desktop app offline (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          export PLAYWRIGHT_BROWSERS_PATH="/tmp/nonexistent-playwright-cache-ci"
+          APP_BIN=""
+          for candidate in \
+            "release/mac-arm64/Viewport Guard.app/Contents/MacOS/Viewport Guard" \
+            "release/mac/Viewport Guard.app/Contents/MacOS/Viewport Guard"; do
+            if [ -x "$candidate" ]; then
+              APP_BIN="$candidate"
+              break
+            fi
+          done
+          test -n "$APP_BIN"
+          "$APP_BIN" "--self-test=$PWD/.artifacts/ci-selftest-mac.json"
+          cat "$PWD/.artifacts/ci-selftest-mac.json"
+
+      - name: Verify packaged desktop app offline (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          export PLAYWRIGHT_BROWSERS_PATH="/tmp/nonexistent-playwright-cache-ci"
+          xvfb-run -a ./release/linux-unpacked/viewport-guard --no-sandbox "--self-test=$PWD/.artifacts/ci-selftest-linux.json"
+          cat "$PWD/.artifacts/ci-selftest-linux.json"
+
+      - name: Upload built desktop artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_paths }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-release
+          merge-multiple: true
+
+      - name: Generate combined SHA256SUMS.txt
+        working-directory: dist-release
+        run: |
+          ls -lh
+          sha256sum Viewport-Guard-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" dist-release/Viewport-Guard-* dist-release/SHA256SUMS.txt --clobber
+          else
+            gh release create "$TAG_NAME" dist-release/Viewport-Guard-* dist-release/SHA256SUMS.txt \
+              --title "Viewport Guard ${TAG_NAME} — Windows, macOS & Linux Desktop" \
+              --generate-notes
+          fi

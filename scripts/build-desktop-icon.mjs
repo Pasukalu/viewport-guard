@@ -37,7 +37,8 @@ function wrapPngAsIco(pngBuffers) {
 
 const browser = await chromium.launch({ headless: true });
 try {
-  const sizes = [256, 64, 48, 32, 16];
+  // 512px PNG for macOS (.icns auto-conversion) & Linux AppImage/deb; 256..16px frames for Windows .ico.
+  const sizes = [512, 256, 64, 48, 32, 16];
   const rendered = [];
   for (const size of sizes) {
     const page = await browser.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
@@ -51,8 +52,8 @@ try {
     await page.close();
   }
   await writeFile(join(outDir, 'icon.png'), rendered[0].data);
-  await writeFile(join(outDir, 'icon.ico'), wrapPngAsIco(rendered));
-  console.log(`Generated ${join(outDir, 'icon.png')} and ${join(outDir, 'icon.ico')}`);
+  await writeFile(join(outDir, 'icon.ico'), wrapPngAsIco(rendered.filter((item) => item.size <= 256)));
+  console.log(`Generated ${join(outDir, 'icon.png')} (512x512) and ${join(outDir, 'icon.ico')} (16-256px)`);
 } finally {
   await browser.close();
 }

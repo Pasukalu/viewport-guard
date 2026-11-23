@@ -29,9 +29,16 @@
     "desktop:icon": "node scripts/build-desktop-icon.mjs",
     "desktop:prepare-browser": "node scripts/prepare-desktop-browser.mjs",
     "desktop:dev": "npm run build && electron .",
-    "desktop:pack": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir",
-    "desktop:portable": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win portable",
-    "desktop:dist": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir portable"
+    "desktop:pack": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --dir",
+    "desktop:portable": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win portable --x64",
+    "desktop:dist": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir portable nsis --x64",
+    "desktop:dist:win": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --win dir portable nsis --x64",
+    "desktop:dist:mac": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --mac dmg zip",
+    "desktop:dist:mac:arm64": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --mac dmg zip --arm64",
+    "desktop:dist:mac:x64": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --mac dmg zip --x64",
+    "desktop:dist:linux": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --linux AppImage deb tar.gz",
+    "desktop:dist:linux:x64": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --linux AppImage deb tar.gz --x64",
+    "desktop:dist:linux:arm64": "npm run build && npm run desktop:prepare-browser && electron-builder --config electron-builder.json --linux AppImage deb tar.gz --arm64"
   },
   "dependencies": {
     "commander": "14.0.3",

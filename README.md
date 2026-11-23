@@ -83,37 +83,48 @@ Overflowing viewports:
 
 Copy `.\reports\fixed-report.html` by itself to any other folder and open it in a browser: all three PNG screenshots remain visible and the fix prompt remains selectable offline.
 
-### Standalone Packaged Windows Desktop App
+### Standalone Packaged Desktop Apps (Windows, macOS & Linux)
 
-> **Direct Download**: Prebuilt standalone Windows x64 portable executable (`Viewport-Guard-1.0.0-win-x64-portable.exe`, no Node.js or browser setup required) is available on [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest).
+> **Direct Download**: Prebuilt standalone desktop releases are published on [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest) (no Node.js or separate Playwright setup required).
 
-Viewport Guard includes an Electron desktop application (`desktop/`) that bundles Playwright's headless Chromium (`chrome-headless-shell`) into the package so it runs completely standalone on Windows without Node.js, npm, or separate browser downloads (with automatic fallback to system Microsoft Edge/Chrome if built without a bundled browser).
+Viewport Guard includes a cross-platform Electron desktop application (`desktop/`) that bundles Playwright's headless Chromium (`chrome-headless-shell`) into the package for **Windows x64**, **macOS (Apple Silicon `arm64` & Intel `x64`)**, and **Linux (`x64` / `arm64`)**, with automatic fallback to installed system Chromium/Chrome/Edge if built without a bundled browser.
+
+| Platform | Packaged Targets | Native Build Command |
+| --- | --- | --- |
+| **Windows (`x64`)** | Portable `.exe`, NSIS Installer (`-setup.exe`), unpacked folder | `npm run desktop:dist:win` |
+| **macOS (`arm64` / `x64`)** | `.dmg` disk image, `.zip` archive | `npm run desktop:dist:mac` (or `:arm64` / `:x64`) |
+| **Linux (`x64` / `arm64`)** | `.AppImage`, `.deb`, `.tar.gz` | `npm run desktop:dist:linux` (or `:x64` / `:arm64`) |
 
 Desktop features:
-- Native Windows GUI for scanning any HTTP/HTTPS URL at `375×812`, `390×844`, `768×1024` (or custom widths).
+- Native GUI for scanning any HTTP/HTTPS URL at `375×812`, `390×844`, `768×1024` (or custom widths), with native macOS `Edit` menu (`Cmd+C` / `Cmd+V` / `Cmd+A`) and Dock lifecycle support.
 - Built-in local demo server with one-click **Broken Demo (`.offer-row`)** and **Fixed Demo (`0px`)** scan buttons.
 - Live scan progress bar, viewport overview cards, embedded screenshot preview, candidate selector/bounds inspector, native clipboard **Copy Fix Prompt** + manual selection fallback, and native Save/Open/Reveal actions for standalone `report.html`.
 
-Build and package commands (Windows PowerShell):
+Build and package commands:
 
 ```powershell
-# Launch desktop app in development mode
+# Launch desktop app in development mode (Windows / macOS / Linux)
 npm run desktop:dev
 
-# Package standalone unpacked folder -> release\win-unpacked\Viewport Guard.exe
-npm run desktop:pack
+# Windows x64: portable .exe + NSIS setup.exe + unpacked folder
+npm run desktop:dist:win
 
-# Package single-file portable executable -> release\Viewport-Guard-1.0.0-win-x64-portable.exe
-npm run desktop:portable
+# macOS (run on macOS): .dmg + .zip (use :arm64 for Apple Silicon, :x64 for Intel)
+npm run desktop:dist:mac
 
-# Build both unpacked folder and single-file portable executable
-npm run desktop:dist
+# Linux (run on Linux): .AppImage + .deb + .tar.gz
+npm run desktop:dist:linux
 
-# Verify packaged standalone executable end-to-end (offline self-test)
+# Offline end-to-end self-test on packaged Windows executable
 Start-Process -FilePath ".\release\win-unpacked\Viewport Guard.exe" -ArgumentList "--self-test=$PWD\.artifacts\packaged-selftest.json" -Wait
 ```
 
-Packaged artifacts in `release/` are excluded from Git via `.gitignore` because they embed Electron and Chromium (~195 MB portable `.exe`).
+Platform notes for unsigned community builds:
+- **Windows**: SmartScreen may prompt "Windows protected your PC" on first run → click **More info → Run anyway**.
+- **macOS**: Unsigned `.dmg`/`.app` builds may trigger Gatekeeper → run `xattr -cr "/Applications/Viewport Guard.app"` before launching.
+- **Linux**: For `.AppImage`, mark executable (`chmod +x Viewport-Guard-*.AppImage`) and ensure FUSE (`libfuse2`) is installed; if user-namespace sandboxing is restricted (e.g., Ubuntu 24.04 AppArmor), launch with `--no-sandbox`.
+
+Automated multi-OS builds (Windows x64, macOS arm64, macOS x64, Linux x64) are provided in [docs/ci/desktop-release.yml](docs/ci/desktop-release.yml) — copy it to `.github/workflows/desktop-release.yml` (requires GitHub `workflow` token scope or adding via the GitHub web UI) to build, self-test, and publish Windows, macOS, and Linux binaries automatically on `v*` tag pushes or manual `workflow_dispatch`. Packaged artifacts in `release/` are excluded from Git via `.gitignore`.
 
 ### `scan` CLI Options
 
@@ -227,37 +238,48 @@ HTML report: C:\...\reports\broken-report.html
 
 将 `.\reports\fixed-report.html` 单独复制到任意其他目录并用浏览器打开：三张内嵌截图均可正常显示，底部的修复提示词区域仍可点击复制或手动全选。
 
-### 打包可独立运行的 Windows 桌面版
+### 多平台独立桌面版（Windows / macOS / Linux）
 
-> **直接下载**：无需安装 Node.js 或 Playwright，可直接前往 [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest) 下载单文件便携版 `Viewport-Guard-1.0.0-win-x64-portable.exe` 双击运行。
+> **直接下载**：无需安装 Node.js 或 Playwright，可直接前往 [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest) 下载各平台独立打包版本。
 
-项目内置 Electron 桌面应用（`desktop/`），打包时会自动将 Playwright 无头 Chromium（`chrome-headless-shell`）打入应用资源目录 `resources/browsers/`。打包后的 Windows 可执行文件**无需本机安装 Node.js、npm 或单独下载 Playwright 浏览器**即可离线双击运行（若精简打包未内嵌浏览器，亦会自动回退使用系统自带的 Microsoft Edge / Chrome）。
+项目内置跨平台 Electron 桌面应用（`desktop/`），打包时自动按当前系统与架构（**Windows x64**、**macOS Apple Silicon `arm64` / Intel `x64`**、**Linux `x64` / `arm64`**）内嵌对应的 Playwright 无头 Chromium（`chrome-headless-shell`），离线即可双击运行；若精简构建未内嵌浏览器，也会自动回退检测系统安装的 Chrome / Edge / Chromium。
+
+| 平台 | 打包格式 | 本地打包命令 |
+| --- | --- | --- |
+| **Windows (`x64`)** | 单文件便携版 `.exe`、安装版 `-setup.exe`、免安装目录 | `npm run desktop:dist:win` |
+| **macOS (`arm64` / `x64`)** | `.dmg` 镜像、`.zip` 压缩包 | `npm run desktop:dist:mac`（或 `:arm64` / `:x64`） |
+| **Linux (`x64` / `arm64`)** | `.AppImage`、`.deb`、`.tar.gz` | `npm run desktop:dist:linux`（或 `:x64` / `:arm64`） |
 
 桌面端功能：
-- 可视化输入任意 HTTP/HTTPS 地址，默认按 `375×812`、`390×844`、`768×1024` 扫描（也支持自定义宽度、超时、等待时间及 `--wait-for` 选择器）。
+- 可视化输入任意 HTTP/HTTPS 地址，默认按 `375×812`、`390×844`、`768×1024` 扫描（支持自定义宽度、超时、等待时间及 `--wait-for` 选择器）；macOS 下完整支持原生菜单栏与 `Cmd+C / Cmd+V / Cmd+A` 快捷键及 Dock 恢复。
 - 内置本地演示服务器，一键加载并扫描 **故障版（`.offer-row` 560px）** 与 **修复版（0px）**。
 - 实时进度条、视口总览卡片、内嵌截图预览、疑似出界元素与边界值列表、原生剪贴板一键复制修复提示词（失败时自动全选）、原生打开/定位/另存独立 `report.html`。
 
-Windows PowerShell 构建与打包命令：
+各平台构建与打包命令：
 
 ```powershell
-# 开发模式启动桌面端
+# 开发模式启动桌面端（Windows / macOS / Linux 通用）
 npm run desktop:dev
 
-# 打包免安装独立目录版 -> release\win-unpacked\Viewport Guard.exe
-npm run desktop:pack
+# Windows x64：生成单文件便携版 + NSIS 安装版 + 免安装目录
+npm run desktop:dist:win
 
-# 打包单文件便携版 -> release\Viewport-Guard-1.0.0-win-x64-portable.exe
-npm run desktop:portable
+# macOS（在 macOS 运行）：生成 .dmg 与 .zip（支持 :arm64 / :x64）
+npm run desktop:dist:mac
 
-# 同时生成目录版与单文件便携版
-npm run desktop:dist
+# Linux（在 Linux 运行）：生成 .AppImage、.deb 与 .tar.gz
+npm run desktop:dist:linux
 
-# 对打包产物执行离线端到端自检（验证内置浏览器、故障版 185/170/0、修复版 0/0/0 与不可访问报错）
+# 对 Windows 打包产物执行离线端到端自检
 Start-Process -FilePath ".\release\win-unpacked\Viewport Guard.exe" -ArgumentList "--self-test=$PWD\.artifacts\packaged-selftest.json" -Wait
 ```
 
-`release/` 中的二进制打包产物（便携单文件约 195 MB）已在 `.gitignore` 中忽略，不会污染 Git 仓库；源码拉取后通过上述一条命令即可完整复现打包。
+未签名开源打包版首次启动提示：
+- **Windows**：如遇 SmartScreen 提示“Windows 已保护你的电脑”，点击 **更多信息 → 仍要运行**。
+- **macOS**：如遇 Gatekeeper 提示应用已损坏或无法验证开发者，可在终端执行 `xattr -cr "/Applications/Viewport Guard.app"` 后打开。
+- **Linux**：运行 `.AppImage` 前需赋予执行权限（`chmod +x Viewport-Guard-*.AppImage`）并确保已安装 `libfuse2`；若系统限制用户命名空间沙盒（如部分 Ubuntu 24.04 配置），可加 `--no-sandbox` 启动。
+
+项目在 [docs/ci/desktop-release.yml](docs/ci/desktop-release.yml) 中提供了完整的跨平台 GitHub Actions 自动构建与发布工作流模板——将其复制到 `.github/workflows/desktop-release.yml`（需 GitHub `workflow` 权限或通过网页端添加）后，推送 `v*` 标签或手动触发 `workflow_dispatch` 即可在 GitHub 云端 `windows-latest`、`macos-15`（Apple Silicon）、`macos-15-intel`（Intel Mac）与 `ubuntu-24.04`（Linux x64）并行构建、离线自检并自动上传至 GitHub Releases。`release/` 目录中的二进制产物已在 `.gitignore` 中排除。
 
 ### `scan` 命令参数
 

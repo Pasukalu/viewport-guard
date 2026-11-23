@@ -9,7 +9,8 @@ Environment / 环境: Windows 11 x64, Node.js **22.22.2**, npm **10.9.7** (invok
 | `npm.cmd ci` & `npx.cmd playwright install chromium` | PASS, exit 0 (installed 58 base packages + Chromium v1254 & headless shell) |
 | `npm.cmd run desktop:icon` | PASS, exit 0 (generated `desktop/assets/icon.png` and multi-size `desktop/assets/icon.ico`) |
 | `npm.cmd install --save-dev --save-exact electron electron-builder` | PASS, exit 0 (`electron@45.4.1`, `electron-builder@26.18.0`) |
-| `npm.cmd run check` | PASS, exit 0 (`typecheck`, `build`, **16/16 Vitest files / 232/232 tests**, **19/19 CLI smoke scenarios**) |
+| `npm.cmd run check` | PASS, exit 0 (`typecheck`, `build`, **17/17 Vitest files / 235/235 tests** including cross-platform browser staging/fallback unit tests, **19/19 CLI smoke scenarios**) |
+| `npm.cmd run desktop:dist:win` | PASS, exit 0: generated `release\win-unpacked\Viewport Guard.exe`, `release\Viewport-Guard-1.0.0-win-x64-portable.exe` (194.96 MB), and `release\Viewport-Guard-1.0.0-win-x64-setup.exe` (216.07 MB NSIS installer) |
 | `npm.cmd run demo` + `npm.cmd run scan -- http://127.0.0.1:4174/broken.html --out .artifacts\demo-run\broken-report.html` | PASS (expected overflow exit `1`): `375x812: 185px`, `390x844: 170px`, `768x1024: 0px`; `.offer-row` listed as #1 candidate on 375 & 390; 4 embedded PNGs + fix prompt verified |
 | `npm.cmd run scan -- http://127.0.0.1:4174/fixed.html --out .artifacts\demo-run\fixed-report.html` | PASS, exit `0`: `0px / 0px / 0px`; standalone copied `report.html` verified offline in Chromium with all 3 screenshots rendering and manual prompt selection fallback passing |
 | `npm.cmd run scan -- http://127.0.0.1:59999/unreachable --out ... --timeout 3000` | PASS (expected error exit `2`): clear `Unable to load ... ERR_CONNECTION_REFUSED`, no fake report written, browser closed |
@@ -22,7 +23,7 @@ Environment / 环境: Windows 11 x64, Node.js **22.22.2**, npm **10.9.7** (invok
 
 - Running the packaged Windows desktop executables on a completely clean second Windows machine without Node.js or developer tools installed (tested locally with `PLAYWRIGHT_BROWSERS_PATH` pointed to a non-existent folder to force bundled Chromium resolution, but not on a separate virgin VM).
 - Windows Authenticode code signing / SmartScreen reputation (no signing certificate is configured, so Windows SmartScreen may show an unsigned publisher prompt on other machines).
-- macOS and Linux desktop packaging (`electron-builder` targets and tests were verified on Windows x64 only).
+- macOS (`arm64` / `x64` `.dmg`, `.zip`) and Linux (`x64` `.AppImage`, `.deb`, `.tar.gz`) native binary builds: cross-platform browser staging, macOS menu/Dock lifecycle, Linux sandbox fallback, `electron-builder.json` targets, unit tests (`tests/desktop-platform.test.ts`), and the GitHub Actions matrix workflow are implemented, but native macOS/Linux executables cannot be compiled or executed locally on a Windows host without macOS/Linux runners.
 - `pnpm-lock.yaml` synchronization after adding `electron` and `electron-builder` (`pnpm` was not installed in this environment; `package-lock.json` is up to date and verified with npm).
 - Interactive manual mouse/keyboard visual walkthrough of the Electron desktop window by a human user (automated DOM/IPC/self-test verified window load, preload bridge, scan flow, and report generation).
 

@@ -4,10 +4,15 @@
 
   const state = {
     scanning: false,
+    platform: 'win32',
     demo: { running: false },
     lastRun: null,
     selectedIndex: 0,
   };
+
+  function copyShortcut() {
+    return state.platform === 'darwin' ? 'Cmd+C' : 'Ctrl+C';
+  }
 
   function formatPx(value) {
     const rounded = Math.round(value * 10) / 10;
@@ -229,7 +234,9 @@
 
   async function init() {
     const info = await api.getAppInfo();
-    $('app-version').textContent = `v${info.version} · ${info.isPackaged ? 'Standalone Desktop' : 'Dev Mode'}`;
+    state.platform = info.platform || 'win32';
+    const platformLabel = info.platform ? `${info.platform}/${info.arch}` : 'Desktop';
+    $('app-version').textContent = `v${info.version} · ${info.isPackaged ? `Standalone (${platformLabel})` : `Dev (${platformLabel})`}`;
     $('engine-chip').textContent = info.browserMode;
     $('output-input').value = info.defaultOutputPath;
     if (info.mascotDataUrl) {
@@ -320,7 +327,7 @@
       box.focus();
       box.select();
       box.setSelectionRange(0, box.value.length);
-      $('copy-status').textContent = '已全选修复提示词，请按 Ctrl+C 复制。';
+      $('copy-status').textContent = `已全选修复提示词，请按 ${copyShortcut()} 复制。`;
     });
 
     $('copy-prompt-btn').addEventListener('click', async () => {
@@ -337,7 +344,7 @@
       box.focus();
       box.select();
       box.setSelectionRange(0, box.value.length);
-      $('copy-status').textContent = '自动复制失败，已全选文本，请按 Ctrl+C 手动复制。';
+      $('copy-status').textContent = `自动复制失败，已全选文本，请按 ${copyShortcut()} 手动复制。`;
     });
   }
 

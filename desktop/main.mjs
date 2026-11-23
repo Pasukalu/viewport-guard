@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { copyFile, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,12 +39,15 @@ async function configureDesktopBrowser() {
     try {
       const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
       if (typeof manifest.executableRelativePath === 'string') {
-        const exePath = join(root, manifest.executableRelativePath);
+        const exePath = join(root, ...manifest.executableRelativePath.split('/'));
         if (await fileExists(exePath)) {
+          if (process.platform !== 'win32') {
+            try { await chmod(exePath, 0o755); } catch { /* ignore read-only mount */ }
+          }
           process.env.VIEWPORT_GUARD_BROWSER_PATH = exePath;
           browserMode = app.isPackaged
-            ? 'Bundled Chromium (Standalone Offline)'
-            : 'Staged Bundled Chromium';
+            ? `Bundled Chromium (${process.platform}/${process.arch} · Offline)`
+            : `Staged Bundled Chromium (${process.platform}/${process.arch})`;
           return;
         }
       }
@@ -65,7 +68,13 @@ async function readMascotDataUrl() {
 }
 
 function defaultReportPath() {
-  return join(app.getPath('documents'), 'ViewportGuard', 'report.html');
+  let baseDir;
+  try {
+    baseDir = app.getPath('documents');
+  } catch {
+    baseDir = app.getPath('home');
+  }
+  return join(baseDir, 'ViewportGuard', 'report.html');
 }
 
 function formatError(error) {
@@ -99,8 +108,51 @@ async function stopDemoIfRunning() {
   }
 }
 
+function configureAppMenu() {
+  if (process.platform === 'darwin') {
+    const template = [
+      {
+        label: app.name,
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' },
+        ],
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          { role: 'selectAll' },
+        ],
+      },
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize' },
+          { role: 'zoom' },
+          { role: 'close' },
+        ],
+      },
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  } else {
+    Menu.setApplicationMenu(null);
+  }
+}
+
 function createWindow(show = true) {
-  const iconPath = join(desktopDir, 'assets', 'icon.ico');
+  const iconFile = process.platform === 'win32' ? 'icon.ico' : 'icon.png';
+  const iconPath = join(desktopDir, 'assets', iconFile);
   const win = new BrowserWindow({
     width: 1320,
     height: 860,
@@ -117,7 +169,9 @@ function createWindow(show = true) {
       sandbox: true,
     },
   });
-  win.setMenuBarVisibility(false);
+  if (process.platform !== 'darwin') {
+    win.setMenuBarVisibility(false);
+  }
   win.loadFile(join(desktopDir, 'index.html'));
   return win;
 }
@@ -125,6 +179,8 @@ function createWindow(show = true) {
 function registerIpcHandlers() {
   ipcMain.handle('app:info', async () => ({
     version: app.getVersion(),
+    platform: process.platform,
+    arch: process.arch,
     isPackaged: app.isPackaged,
     browserMode,
     defaultOutputPath: defaultReportPath(),
@@ -294,7 +350,7 @@ async function runSelfTest(outputJsonPath) {
     }
     const copiedDir = join(workDir, 'copied');
     const copiedHtml = join(copiedDir, 'standalone.html');
-    await (await import('node:fs/promises')).mkdir(copiedDir, { recursive: true });
+    await mkdir(copiedDir, { recursive: true });
     await copyFile(fixedOut, copiedHtml);
     const copiedContent = await readFile(copiedHtml, 'utf8');
     if (!copiedContent.includes('data:image/png;base64,') || !copiedContent.includes('id="fix-prompt"')) {
@@ -344,7 +400,7 @@ async function runSelfTest(outputJsonPath) {
 }
 
 app.whenReady().then(async () => {
-  Menu.setApplicationMenu(null);
+  configureAppMenu();
   await configureDesktopBrowser();
   registerIpcHandlers();
 
@@ -357,6 +413,13 @@ app.whenReady().then(async () => {
 
   mainWindow = createWindow(true);
   mainWindow.on('closed', () => { mainWindow = null; });
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createWindow(true);
+      mainWindow.on('closed', () => { mainWindow = null; });
+    }
+  });
 });
 
 app.on('before-quit', async () => {
@@ -364,6 +427,8 @@ app.on('before-quit', async () => {
 });
 
 app.on('window-all-closed', async () => {
-  await stopDemoIfRunning();
-  app.quit();
+  if (process.platform !== 'darwin') {
+    await stopDemoIfRunning();
+    app.quit();
+  }
 });
