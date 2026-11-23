@@ -85,6 +85,8 @@ Copy `.\reports\fixed-report.html` by itself to any other folder and open it in 
 
 ### Standalone Packaged Windows Desktop App
 
+> **Direct Download**: Prebuilt standalone Windows x64 portable executable (`Viewport-Guard-1.0.0-win-x64-portable.exe`, no Node.js or browser setup required) is available on [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest).
+
 Viewport Guard includes an Electron desktop application (`desktop/`) that bundles Playwright's headless Chromium (`chrome-headless-shell`) into the package so it runs completely standalone on Windows without Node.js, npm, or separate browser downloads (with automatic fallback to system Microsoft Edge/Chrome if built without a bundled browser).
 
 Desktop features:
@@ -226,6 +228,8 @@ HTML report: C:\...\reports\broken-report.html
 将 `.\reports\fixed-report.html` 单独复制到任意其他目录并用浏览器打开：三张内嵌截图均可正常显示，底部的修复提示词区域仍可点击复制或手动全选。
 
 ### 打包可独立运行的 Windows 桌面版
+
+> **直接下载**：无需安装 Node.js 或 Playwright，可直接前往 [GitHub Releases](https://github.com/Pasukalu/viewport-guard/releases/latest) 下载单文件便携版 `Viewport-Guard-1.0.0-win-x64-portable.exe` 双击运行。
 
 项目内置 Electron 桌面应用（`desktop/`），打包时会自动将 Playwright 无头 Chromium（`chrome-headless-shell`）打入应用资源目录 `resources/browsers/`。打包后的 Windows 可执行文件**无需本机安装 Node.js、npm 或单独下载 Playwright 浏览器**即可离线双击运行（若精简打包未内嵌浏览器，亦会自动回退使用系统自带的 Microsoft Edge / Chrome）。
 
